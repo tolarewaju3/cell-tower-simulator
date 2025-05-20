@@ -5,7 +5,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class CallControlManager {
 
-    private volatile double dropRate = 0.1;
+    private volatile double dropRate = 0.03;
     private volatile boolean emitterEnabled = true;
 
     public double getDropRate() {
