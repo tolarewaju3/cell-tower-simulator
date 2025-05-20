@@ -22,4 +22,4 @@
       condition: event.body is defined
       action:
         debug:
-          msg: "Received tower drop event: {{ event.body }} "
+          msg: "Received tower event: {{ event.body }} "
