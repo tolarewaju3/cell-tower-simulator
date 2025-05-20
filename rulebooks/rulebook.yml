@@ -1,0 +1,19 @@
+---
+- name: Restart tower if drop rate too high
+  hosts: localhost
+
+  sources:
+    - name: kafka_dropped_calls
+      ansible.eda.kafka:
+        topic: call-records
+        host: my-cluster-kafka-bootstrap  # Update this to your Kafka host
+        group_id: eda-listener
+        port: 9092
+        deserialize: json
+
+  rules:
+    - name: Print Hello on Any Event
+      condition: event.body.cell_id is defined
+      action:
+        debug:
+          msg: "Got message from tower {{ event.body }}"
