@@ -12,8 +12,8 @@
         deserialize: json
 
   rules:
-    - name: Print Hello on Any Event
-      condition: event.body.dropRate > .1
+    - name: Detect down cell tower
+      condition: event.body.dropRate > 0.1
       action:
         debug:
           msg: "Tower {{ event.body.cell_id }} is down. Remediating.."
