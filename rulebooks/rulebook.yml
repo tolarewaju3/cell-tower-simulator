@@ -6,7 +6,7 @@
     - name: kafka_dropped_calls
       ansible.eda.kafka:
         topic: call-records
-        host: my-cluster-kafka-bootstrap  # Update this to your Kafka host
+        host: my-cluster-kafka-bootstrap.openshift-operators.svc  # Update this to your Kafka host
         group_id: eda-listener
         port: 9092
         deserialize: json
