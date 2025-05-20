@@ -17,3 +17,9 @@
       action:
         debug:
           msg: "Tower {{ event.body.cell_id }} is down. Remediating.."
+
+    - name: Print event
+      condition: event.body is defined
+      action:
+        debug:
+          msg: "Received tower drop event: {{ event.body }} "
