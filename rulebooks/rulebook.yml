@@ -5,7 +5,7 @@
   sources:
     - name: Listen for dropped call events
       ansible.eda.kafka:
-        topic: "{{ kafka_topic | default('dropped_alerts') }}"
+        topic: "{{ kafka_topic | default('dropped-alerts') }}"
         host: "{{ kafka_url | default('my-cluster-kafka-bootstrap.openshift-operators.svc') }}" 
         group_id: eda-listener
         port: 9092
