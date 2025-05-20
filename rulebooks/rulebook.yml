@@ -3,17 +3,17 @@
   hosts: localhost
 
   sources:
-    - name: kafka_dropped_calls
+    - name: Listen for dropped call events
       ansible.eda.kafka:
-        topic: call-records
-        host: my-cluster-kafka-bootstrap.openshift-operators.svc  # Update this to your Kafka host
+        topic: "{{ kafka_topic | default('dropped_calls') }}"
+        host: "{{ kafka_url | default('my-cluster-kafka-bootstrap.openshift-operators.svc') }}" 
         group_id: eda-listener
         port: 9092
         deserialize: json
 
   rules:
     - name: Print Hello on Any Event
-      condition: event.body.cell_id is defined
+      condition: event.body.dropRate > .1
       action:
         debug:
-          msg: "Got message from tower {{ event.body }}"
+          msg: "Tower {{ event.body.cell_id }} is down. Remediating.."
