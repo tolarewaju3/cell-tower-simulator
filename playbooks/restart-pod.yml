@@ -7,5 +7,5 @@
       kubernetes.core.k8s:
         state: absent
         kind: Pod
-        namespace: telco-demo
-        name: tower-tx-01
+        namespace: openshift-operators
+        name: call-record-generator-amd64
