@@ -8,4 +8,4 @@
         state: absent
         kind: Pod
         namespace: openshift-operators
-        name: call-record-generator-amd64
+        name: call-record-generator-amd64-5596765fdb-qrg7q
