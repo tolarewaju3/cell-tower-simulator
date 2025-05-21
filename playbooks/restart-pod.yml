@@ -1,20 +1,21 @@
 ---
-- name: Find call generation pod
-  kubernetes.core.k8s_info:
-    kind: Pod
-    namespace: openshift-operators
-    label_selectors:
-      - app = call-record-generator-amd64
-    wait: yes
-  register: pod
-
-- set_fact:
-    call_generation_pod: "{{ pod.resources[0].metadata.name }}"
-
 - name: Restart tower simulator pod
   hosts: localhost
   gather_facts: false
   tasks:
+
+    - name: Find call generation pod
+      kubernetes.core.k8s_info:
+        kind: Pod
+        namespace: openshift-operators
+        label_selectors:
+          - app = call-record-generator-amd64
+        wait: yes
+      register: pod
+
+    - set_fact:
+        call_generation_pod: "{{ pod.resources[0].metadata.name }}"
+
     - name: Delete the pod (so OpenShift restarts it)
       kubernetes.core.k8s:
         state: absent
