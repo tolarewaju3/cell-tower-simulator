@@ -14,9 +14,12 @@
   rules:
     - name: Detect down cell tower
       condition: event.body.dropRate > 0.1
-      action:
-        debug:
-          msg: "Tower {{ event.body.cell_id }} is down. Remediating.."
+      actions:
+        - debug:
+            msg: "Tower {{ event.body.cell_id }} is down. Remediating.."
+        - run_job_template:
+           name: tower-remediation
+           organization: Default
 
     - name: Print event
       condition: event.body is defined
