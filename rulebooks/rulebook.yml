@@ -14,6 +14,10 @@
   rules:
     - name: Detect down cell tower
       condition: event.body.dropRate > 0.1
+      throttle:
+        once_within: 3 minutes
+        group_by_attributes:
+          - event.body.cell_id
       actions:
         - debug:
             msg: "Tower {{ event.body.cell_id }} is down. Remediating.."
