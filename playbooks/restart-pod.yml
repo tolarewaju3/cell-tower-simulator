@@ -1,4 +1,16 @@
 ---
+- name: Find call generation pod
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: openshift-operators
+    label_selectors:
+      - app = call-record-generator-amd64
+    wait: yes
+  register: pod
+
+- set_fact:
+    call_generation_pod: "{{ pod.resources[0].metadata.name }}"
+
 - name: Restart tower simulator pod
   hosts: localhost
   gather_facts: false
@@ -8,4 +20,4 @@
         state: absent
         kind: Pod
         namespace: openshift-operators
-        name: call-record-generator-amd64-5596765fdb-qrg7q
+        name: "{{ call_generation_pod }}"
