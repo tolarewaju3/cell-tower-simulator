@@ -27,9 +27,6 @@ public class CallRecordEmitter {
     @ConfigProperty(name = "mp.messaging.outgoing.callrecord-out.topic")
     String kafkaTopic;
 
-    @ConfigProperty(name = "call.type")
-    String callType;
-
     Random rand = new Random();
 
     @Scheduled(every = "1s", delayed = "5s")
@@ -51,7 +48,6 @@ public class CallRecordEmitter {
     void onStart(@Observes StartupEvent ev) {
         System.out.println("-----------------------------");
         System.out.println("Starting Call Record Emitter");
-        System.out.println("Call Type: " + callType);
         System.out.println("Drop Rate: " + control.getDropRate());
         System.out.println("Kafka URL: " + kafkaUrl);
         System.out.println("Kafka Topic: " + kafkaTopic);
