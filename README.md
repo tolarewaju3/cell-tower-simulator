@@ -8,7 +8,7 @@ A Java-based call record simulator that mimics real-world cell tower traffic, in
 
 - Emits realistic call records on a timer (e.g., every 3 seconds)
 - Simulates dropped calls using a configurable drop rate
-- Sends records to Kafka using SmallRye Reactive Messaging
+- Sends records to Kafka
 - Exposes a `/control` REST API for:
     - Toggling the emitter on/off
     - Adjusting drop rate dynamically
@@ -24,12 +24,8 @@ Set in `application.properties` or via environment variables:
 
 ```properties
 # Kafka topic config
-mp.messaging.outgoing.callrecord-out.connector=smallrye-kafka
-mp.messaging.outgoing.callrecord-out.topic=call-records
-mp.messaging.outgoing.callrecord-out.value.serializer=org.apache.kafka.common.serialization.StringSerializer
+mp.messaging.outgoing.callrecord-out.topic=${CALL_RECORD_TOPIC:call-records}
 
-# Call type (received/dropped)
-call.type=received
 ```
 
 ---
@@ -99,16 +95,9 @@ Quarkus will automatically start a Kafka container using Dev Services. No manual
 
 ---
 
-## 🙋‍♂️ Why?
-
-This project was built to simulate network behavior for testing self-healing demos, dashboards, or real-time alerting pipelines. Instead of injecting random noise, it generates realistic, time-paced Kafka events that can be controlled in real time.
-
----
-
 ## 📦 Tech Stack
 
 - Quarkus (RESTEasy + Scheduler + Kafka)
-- SmallRye Reactive Messaging
 - Kafka Dev Services
 - OpenShift (for deployment)
 
