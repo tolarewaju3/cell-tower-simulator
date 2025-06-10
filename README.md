@@ -44,7 +44,7 @@ mp.messaging.outgoing.callrecord-out.topic=${CALL_RECORD_TOPIC:call-records}
 ### Example:
 
 ```bash
-curl -X POST http://localhost:8080/control/drop-rate?value=0.3
+curl -X POST "http://localhost:8080/control/drop-rate?value=0.3"
 ```
 
 ---
