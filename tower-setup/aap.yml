@@ -1,0 +1,266 @@
+---
+- name: Install AAP Operator and create a project
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - kubernetes.core
+    - awx.awx
+    - ansible.eda
+
+  vars_prompt:
+    - name: ocp_api_host
+      prompt: "Enter the OpenShift/Kubernetes API host (e.g., https://api.cluster.example.com:6443)"
+      private: no  # Set to 'yes' if you want to hide input like a password
+    - name: ocp_bearer_toekn
+      prompt: "Enter the OpenShift/Kubernetes bearer token"
+      private: no  # Set to 'yes' if you want to hide input like a password
+
+  vars:
+    namespace: aap
+    project_name: "cell-tower"
+    scm_url: "https://github.com/tolarewaju3/cell-tower-simulator.git"
+
+  tasks:
+    - name: Create namespace for AAP
+      k8s:
+        api_version: v1
+        kind: Namespace
+        name: "{{ namespace }}"
+        state: present
+
+    - name: Create OperatorGroup
+      k8s:
+        api_version: operators.coreos.com/v1
+        kind: OperatorGroup
+        namespace: "{{ namespace }}"
+        name: aap-operator-group
+        definition:
+          apiVersion: operators.coreos.com/v1
+          kind: OperatorGroup
+          metadata:
+            name: aap-operator-group
+          spec:
+            targetNamespaces:
+              - "{{ namespace }}"
+
+    - name: Create Subscription for AAP Operator
+      k8s:
+        api_version: operators.coreos.com/v1alpha1
+        kind: Subscription
+        namespace: "{{ namespace }}"
+        name: ansible-automation-platform-operator
+        definition:
+          apiVersion: operators.coreos.com/v1alpha1
+          kind: Subscription
+          metadata:
+            name: ansible-automation-platform-operator
+          spec:
+            channel: stable-2.5
+            name: ansible-automation-platform-operator
+            source: redhat-operators
+            sourceNamespace: openshift-marketplace
+
+    - name: Wait for AAP operator to be ready
+      kubernetes.core.k8s_info:
+        kind: Pod
+        namespace: aap
+        label_selectors:
+          - app.kubernetes.io/name=ansible-automation-platform-operator
+        wait: yes
+
+    - name: Create AnsibleAutomationPlatform custom resource
+      k8s:
+        state: present
+        definition:
+          apiVersion: aap.ansible.com/v1alpha1
+          kind: AnsibleAutomationPlatform
+          metadata:
+            name: aap
+            namespace: "{{ namespace }}"
+          spec:
+            route_tls_termination_mechanism: Edge
+            no_log: true
+            redis_mode: standalone
+            api:
+              log_level: INFO
+              replicas: 1
+            database:
+              postgres_data_volume_init: false
+
+    - name: Wait for AAP route to deploy
+      kubernetes.core.k8s_info:
+        kind: Route
+        namespace: aap
+        name: aap
+        wait: yes
+      register: aap_route
+
+    - name: Wait for ansible controller route to deploy
+      kubernetes.core.k8s_info:
+        kind: Route
+        namespace: aap
+        name: aap-controller
+        wait: yes
+      register: controller_route
+
+    - name: Wait for EDA route to deploy
+      kubernetes.core.k8s_info:
+        kind: Route
+        namespace: aap
+        name: aap-eda
+        wait: yes
+      register: eda_route
+
+    - name: Set AAP hostname
+      set_fact:
+        aap_hostname: "https://{{ aap_route.resources[0].spec.host }}"
+
+    - name: Set controller hostname
+      set_fact:
+        controller_hostname: "https://{{ controller_route.resources[0].spec.host }}"
+
+    - name: Set EDA controller hostname
+      set_fact:
+        eda_hostname: "https://{{ eda_route.resources[0].spec.host }}"
+
+    - name: Get AAP admin password from secret
+      k8s_info:
+        api_version: v1
+        kind: Secret
+        namespace: "{{ namespace }}"
+        name: aap-admin-password
+      register: aap_secret
+
+    - name: Get EDA admin password from secret
+      k8s_info:
+        api_version: v1
+        kind: Secret
+        namespace: "{{ namespace }}"
+        name: aap-eda-admin-password
+      register: eda_secret
+
+    - name: Get controller admin password from secret
+      k8s_info:
+        api_version: v1
+        kind: Secret
+        namespace: "{{ namespace }}"
+        name: aap-controller-admin-password
+      register: controller_secret
+
+    - name: Debug full secret structure
+      debug:
+        var: controller_secret
+
+    - name: Debug full hostname
+      debug:
+        var: controller_hostname
+
+    - name: Set AAP password
+      set_fact:
+        aap_password: "{{ aap_secret.resources[0].data.password | b64decode }}"
+
+    - name: Set EDA password
+      set_fact:
+        eda_password: "{{ eda_secret.resources[0].data.password | b64decode }}"
+
+    - name: Set controller password
+      set_fact:
+        controller_password: "{{ controller_secret.resources[0].data.password | b64decode }}"
+
+    - name: Create project in AAP
+      awx.awx.project:
+        controller_host: "{{ controller_hostname }}"
+        controller_username: "admin"
+        controller_password: "{{ controller_password }}"
+        default_environment: "Default execution environment"
+        validate_certs: false
+        name: "{{ project_name }}"
+        organization: Default
+        scm_type: git
+        scm_url: "{{ scm_url }}"
+        scm_branch: master
+        state: present
+
+    - name: Create OpenShift Token Credential
+      awx.awx.credential:
+        controller_host: "{{ controller_hostname }}"
+        controller_username: "admin"
+        controller_password: "{{ controller_password }}"
+        validate_certs: false
+        name: "OpenShift Token Credential"
+        organization: Default
+        credential_type: "OpenShift or Kubernetes API Bearer Token"
+        inputs:
+          host: "{{ ocp_api_host }}"
+          bearer_token: "{{ ocp_bearer_toekn }}"
+      register: result
+
+    - name: Create Job Template for fix-cell-tower
+      awx.awx.job_template:
+        controller_host: "{{ controller_hostname }}"
+        controller_username: "admin"
+        controller_password: "{{ controller_password }}"
+        validate_certs: false
+        name: "remediate-cell-tower"
+        job_type: "run"
+        project: "cell-tower"
+        inventory: "Demo Inventory"
+        playbook: "playbooks/fix-cell-tower.yml"
+        credential: "OpenShift Token Credential"
+        execution_environment: "Default execution environment"
+
+    - name: Create an EDA Credential
+      ansible.eda.credential:
+        controller_host: "{{ eda_hostname }}"
+        controller_username: "admin"
+        controller_password: "{{ eda_password }}"
+        validate_certs: false
+        name: "aap"
+        description: "Example credential description"
+        inputs:
+          host: "{{ controller_hostname }}"
+          username: "admin"
+          password: "{{ controller_password }}"
+        credential_type_name: "Red Hat Ansible Automation Platform"
+        organization_name: Default
+
+    - name: Create a Decision Environment
+      ansible.eda.decision_environment:
+        controller_host: "{{ eda_hostname }}"
+        controller_username: "admin"
+        controller_password: "{{ eda_password }}"
+        validate_certs: false
+        name: "eda-decision-env"
+        image_url: "quay.io/kubealex/eda-decision-env"
+        organization_name: Default
+
+    - name: Create decision project
+      ansible.eda.project:
+        controller_host: "{{ eda_hostname }}"
+        controller_username: "admin"
+        controller_password: "{{ eda_password }}"
+        validate_certs: false
+        name: "cell-tower-remediation"
+        organization: Default
+        url: "{{ scm_url }}"
+        scm_branch: master
+        state: present
+
+    - name: Create a Rulebook Activation
+      ansible.eda.rulebook_activation:
+        controller_host: "{{ eda_hostname }}"
+        controller_username: "admin"
+        controller_password: "{{ eda_password }}"
+        validate_certs: false
+        name: "cell-tower-remediation"
+        project_name: "cell-tower-remediation"
+        rulebook_name: "rulebook.yml"
+        decision_environment_name: "eda-decision-env"
+        credentials: "aap"
+        organization_name: Default
+      register: rulebook_result
+      retries: 5
+      delay: 10
+      until: rulebook_result is not failed
+
+
