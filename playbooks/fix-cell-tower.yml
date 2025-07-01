@@ -22,3 +22,14 @@
         kind: Pod
         namespace: openshift-operators
         name: "{{ cell_tower_simulator_pod }}"
+
+    - name: Send event to Supabase
+      uri:
+        url: "https://jzcvqylgahgasmxfcqyb.supabase.co/rest/v1/remediation_events"
+        method: POST
+        headers:
+          apiKey:  "{{ lookup('env', 'SUPABASE_ANON_KEY') }}"
+        body:
+          event_type: "started"
+        body_format: json
+        status_code: 201
