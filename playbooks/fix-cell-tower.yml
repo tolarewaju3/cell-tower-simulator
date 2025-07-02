@@ -15,14 +15,18 @@
         body_format: json
         status_code: 201
 
-    - name: Find cell tower pod
-      kubernetes.core.k8s_info:
-        kind: Pod
-        namespace: openshift-operators
-        label_selectors:
-          - app = cell-tower-simulator
+    - name: Scale down cell tower deployment
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: cell-tower-simulator
+            namespace: openshift-operators
+          spec:
+            replicas: 0
         wait: yes
-      register: pod
 
     - set_fact:
         cell_tower_simulator_pod: "{{ pod.resources[0].metadata.name }}"
@@ -35,24 +39,19 @@
         name: "{{ cell_tower_simulator_pod }}"
         wait: yes
 
-    - name: Find new cell tower pod
-      kubernetes.core.k8s_info:
-        kind: Pod
-        namespace: openshift-operators
-        label_selectors:
-          - app = cell-tower-simulator
+    - name: Scale up cell tower deployment
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: cell-tower-simulator
+            namespace: openshift-operators
+          spec:
+            replicas: 1
         wait: yes
-      register: new_pod
 
-    - set_fact:
-        new_cell_tower_simulator_pod: "{{ new_pod.resources[0].metadata.name }}"
-
-    - name: Wait for new pod to come up
-      kubernetes.core.k8s_info:
-        kind: Pod
-        namespace: openshift-operators
-        name: "{{ new_cell_tower_simulator_pod }}"
-        wait: yes
 
     - name: Notify remediation completed
       uri:
