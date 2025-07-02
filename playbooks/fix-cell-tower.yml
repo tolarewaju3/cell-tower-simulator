@@ -4,17 +4,6 @@
   gather_facts: false
   tasks:
 
-    - name: Notify remediation started
-      uri:
-        url: "https://jzcvqylgahgasmxfcqyb.supabase.co/rest/v1/remediation_events"
-        method: POST
-        headers:
-          apiKey:  "{{ lookup('env', 'SUPABASE_ANON_KEY') }}"
-        body:
-          event_type: "started"
-        body_format: json
-        status_code: 201
-
     - name: Scale down cell tower deployment
       kubernetes.core.k8s:
         state: present
@@ -28,8 +17,16 @@
             replicas: 0
         wait: yes
 
-    - set_fact:
-        cell_tower_simulator_pod: "{{ pod.resources[0].metadata.name }}"
+    - name: Notify remediation started
+      uri:
+        url: "https://jzcvqylgahgasmxfcqyb.supabase.co/rest/v1/remediation_events"
+        method: POST
+        headers:
+          apiKey:  "{{ lookup('env', 'SUPABASE_ANON_KEY') }}"
+        body:
+          event_type: "started"
+        body_format: json
+        status_code: 201
 
     - name: Scale up cell tower deployment
       kubernetes.core.k8s:
