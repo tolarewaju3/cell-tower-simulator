@@ -31,14 +31,6 @@
     - set_fact:
         cell_tower_simulator_pod: "{{ pod.resources[0].metadata.name }}"
 
-    - name: Restart the cell tower
-      kubernetes.core.k8s:
-        state: absent
-        kind: Pod
-        namespace: openshift-operators
-        name: "{{ cell_tower_simulator_pod }}"
-        wait: yes
-
     - name: Scale up cell tower deployment
       kubernetes.core.k8s:
         state: present
