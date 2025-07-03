@@ -24,6 +24,9 @@
         - run_job_template:
            name: tower-remediation
            organization: Default
+           job_args:
+            extra_vars:
+              cell_id: "{{ event.body.cell_id }}"
 
     - name: Print event
       condition: event.body is defined

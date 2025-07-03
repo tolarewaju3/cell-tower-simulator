@@ -27,6 +27,9 @@ public class CallRecordEmitter {
     @ConfigProperty(name = "mp.messaging.outgoing.callrecord-out.topic")
     String kafkaTopic;
 
+    @ConfigProperty(name = "CITY_CODE", defaultValue = "ATX")
+    String cityCode;
+
     Random rand = new Random();
 
     @Scheduled(every = "1s", delayed = "5s")
@@ -38,7 +41,7 @@ public class CallRecordEmitter {
         double dropRate = control.getDropRate();
         boolean isDropped = rand.nextDouble() < dropRate;
 
-        String callRecord = CallRecordGenerator.getCallRecord(isDropped);
+        String callRecord = CallRecordGenerator.getCallRecord(cityCode, isDropped);
 
         emitter.send(callRecord);
 
