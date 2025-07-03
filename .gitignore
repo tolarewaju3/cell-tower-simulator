@@ -1,5 +1,6 @@
 # Maven build output
-/target/
+simulator/target
+target/
 *.jar
 
 # Quarkus dev services containers (Testcontainers)
