@@ -52,7 +52,7 @@ curl -X POST http://localhost:8080/control/drop-rate?value=0.3
 ## 🧪 Running Locally
 
 ```bash
-./mvnw quarkus:dev
+mvn quarkus:dev
 ```
 
 Quarkus will automatically start a Kafka container using Dev Services. No manual setup needed.
