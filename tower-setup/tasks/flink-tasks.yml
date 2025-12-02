@@ -15,7 +15,7 @@
         name: flink-kubernetes-operator
         source: community-operators
         sourceNamespace: openshift-marketplace
-        startingCSV: flink-kubernetes-operator.v1.6.0
+        startingCSV: flink-kubernetes-operator.v1.13.0
 
 - name: Wait for flink operator to be ready
   kubernetes.core.k8s_info:

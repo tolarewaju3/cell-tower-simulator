@@ -14,7 +14,7 @@
         name: amq-streams
         source: redhat-operators
         sourceNamespace: openshift-marketplace
-        startingCSV: amqstreams.v2.6.0-0
+        startingCSV: amqstreams.v2.9.1-1
 
 - name: Wait for amq streams operator to be ready
   kubernetes.core.k8s_info:
@@ -37,7 +37,7 @@
         kafka:
           config:
             default.replication.factor: 3
-            inter.broker.protocol.version: "3.8"
+            inter.broker.protocol.version: "3.9"
             min.insync.replicas: 2
             offsets.topic.replication.factor: 3
             transaction.state.log.min.isr: 2
@@ -54,7 +54,7 @@
           replicas: 3
           storage:
             type: ephemeral
-          version: 3.8.0
+          version: 3.9.0
         zookeeper:
           replicas: 3
           storage:
