@@ -21,8 +21,8 @@
       actions:
         - debug:
             msg: "Tower {{ event.body.cell_id }} is down. Remediating.."
-        - run_job_template:
-           name: tower-remediation
+        - run_workflow_template:
+           name: cell-tower-remediation-workflow
            organization: Default
            job_args:
             extra_vars:

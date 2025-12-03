@@ -308,6 +308,46 @@
         execution_environment: "Default execution environment"
         ask_variables_on_launch: true
 
+    - name: Create Workflow Template for cell tower remediation
+      block:
+      - name: Create Workflow Template
+        awx.awx.workflow_job_template:
+          controller_host: "{{ controller_hostname }}"
+          controller_username: "admin"
+          controller_password: "{{ controller_password }}"
+          validate_certs: false
+          name: "cell-tower-remediation-workflow"
+          description: "Creates a ServiceNow incident and then remediates the cell tower"
+          organization: Default
+          ask_variables_on_launch: true
+          state: present
+
+      - name: Add fix-cell-tower node to workflow
+        awx.awx.workflow_job_template_node:
+          controller_host: "{{ controller_hostname }}"
+          controller_username: "admin"
+          controller_password: "{{ controller_password }}"
+          validate_certs: false
+          identifier: "fix-cell-tower"
+          workflow_job_template: "cell-tower-remediation-workflow"
+          unified_job_template: "tower-remediation"
+          organization: Default
+          state: present
+
+      - name: Add create-incident node to workflow
+        awx.awx.workflow_job_template_node:
+          controller_host: "{{ controller_hostname }}"
+          controller_username: "admin"
+          controller_password: "{{ controller_password }}"
+          validate_certs: false
+          identifier: "create-servicenow-incident"
+          workflow_job_template: "cell-tower-remediation-workflow"
+          unified_job_template: "create-incident"
+          success_nodes:
+            - "fix-cell-tower"
+          organization: Default
+          state: present
+
     - name: Create an EDA Credential
       ansible.eda.credential:
         controller_host: "{{ eda_hostname }}"
