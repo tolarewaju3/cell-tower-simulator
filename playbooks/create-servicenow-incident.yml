@@ -33,16 +33,16 @@
       debug:
         msg: "ServiceNow incident created: {{ incident_result.record.number }}"
 
-    - name: Notify incident created
-      uri:
-        url: "https://jzcvqylgahgasmxfcqyb.supabase.co/rest/v1/remediation_events"
-        method: POST
-        headers:
-          apiKey: "{{ lookup('env', 'SUPABASE_ANON_KEY') }}"
-        body:
-          event_type: "incident_created"
-          tower_id: "{{ cell_id }}"
-          # incident_number: "{{ incident_result.record.number }}"
-        body_format: json
-        status_code: 201
+    # - name: Notify incident created
+    #   uri:
+    #     url: "https://jzcvqylgahgasmxfcqyb.supabase.co/rest/v1/remediation_events"
+    #     method: POST
+    #     headers:
+    #       apiKey: "{{ lookup('env', 'SUPABASE_ANON_KEY') }}"
+    #     body:
+    #       event_type: "incident_created"
+    #       tower_id: "{{ cell_id }}"
+    #       # incident_number: "{{ incident_result.record.number }}"
+    #     body_format: json
+    #     status_code: 201
 
