@@ -17,6 +17,15 @@
     - name: supabase_anon_key
       prompt: "Enter the Supabase Anon Key"
       private: no  # Set to 'yes' if you want to hide input like a password
+    - name: servicenow_host
+      prompt: "Enter the ServiceNow host"
+      private: no  # Set to 'yes' if you want to hide input like a password
+    - name: servicenow_username
+      prompt: "Enter the ServiceNow username"
+      private: no  # Set to 'yes' if you want to hide input like a password
+    - name: servicenow_password
+      prompt: "Enter the ServiceNow password"
+      private: no  # Set to 'yes' if you want to hide input like a password
 
   vars:
     namespace: aap
@@ -198,6 +207,7 @@
             - id: supabase_anon_key
               type: string
               label: Supabase Anon Key
+              secret: true
           required:
             - supabase_anon_key
         injectors:
@@ -217,6 +227,56 @@
         organization: Default
         inputs:
           supabase_anon_key: "{{ supabase_anon_key }}"
+        state: present
+
+    - name: Create Servienow custom credential type
+      awx.awx.credential_type:
+        controller_host: "{{ controller_hostname }}"
+        controller_username: "admin"
+        controller_password: "{{ controller_password }}"
+        validate_certs: false
+        name: "servicenow_key"
+        kind: "cloud"
+        description: "Credential type for ServiceNow access"
+        inputs:
+          fields:
+            - id: servicenow_host
+              type: string
+              label: ServiceNow Host
+              secret: true
+            - id: servicenow_username
+              type: string
+              label: ServiceNow Username
+              secret: true
+            - id: servicenow_password
+              type: string
+              label: ServiceNow Password
+              secret: true
+          required:
+            - servicenow_host
+            - servicenow_username
+            - servicenow_password
+        injectors:
+          env:
+            SN_HOST: "{{ servicenow_host }}"
+            SN_USERNAME: "{{ servicenow_username }}"
+            SN_PASSWORD: "{{ servicenow_password }}"
+        state: present
+
+    - name: Create Servicenow credential
+      awx.awx.credential:
+        controller_host: "{{ controller_hostname }}"
+        controller_username: "admin"
+        controller_password: "{{ controller_password }}"
+        validate_certs: false
+        name: "servicenow"
+        description: "Credential for ServiceNow access"
+        credential_type: "servicenow_key"
+        organization: Default
+        inputs:
+          servicenow_host: "{{ servicenow_host }}"
+          servicenow_username: "{{ servicenow_username }}"
+          servicenow_password: "{{ servicenow_password }}"
         state: present
 
     - name: Create OpenShift Token Credential
@@ -244,9 +304,26 @@
         project: "cell-tower"
         inventory: "Demo Inventory"
         playbook: "playbooks/fix-cell-tower.yml"
-        credential: 
+        credentials: 
           - "OpenShift Token Credential"
           - "supabase"
+          - "servicenow"
+        execution_environment: "Default execution environment"
+        ask_variables_on_launch: true
+
+    - name: Create Job Template for create-service-now-incident
+      awx.awx.job_template:
+        controller_host: "{{ controller_hostname }}"
+        controller_username: "admin"
+        controller_password: "{{ controller_password }}"
+        validate_certs: false
+        name: "create-incident"
+        job_type: "run"
+        project: "cell-tower"
+        inventory: "Demo Inventory"
+        playbook: "playbooks/create-servicenow-incident.yml"
+        credentials: 
+          - "servicenow"
         execution_environment: "Default execution environment"
         ask_variables_on_launch: true
 
