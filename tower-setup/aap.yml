@@ -303,6 +303,7 @@
         inventory: "Demo Inventory"
         playbook: "playbooks/create-servicenow-incident.yml"
         credentials: 
+          - "supabase"
           - "servicenow"
         execution_environment: "Default execution environment"
         ask_variables_on_launch: true
