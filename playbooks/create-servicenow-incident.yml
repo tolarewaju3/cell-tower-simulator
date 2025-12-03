@@ -42,7 +42,7 @@
         body:
           event_type: "incident_created"
           tower_id: "{{ cell_id }}"
-          incident_number: "{{ incident_result.record.number }}"
+          # incident_number: "{{ incident_result.record.number }}"
         body_format: json
         status_code: 201
 
