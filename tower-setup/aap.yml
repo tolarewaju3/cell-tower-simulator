@@ -7,26 +7,6 @@
     - awx.awx
     - ansible.eda
 
-  vars_prompt:
-    - name: ocp_api_host
-      prompt: "Enter the OpenShift/Kubernetes API host (e.g., https://api.cluster.example.com:6443)"
-      private: no  # Set to 'yes' if you want to hide input like a password
-    - name: ocp_bearer_toekn
-      prompt: "Enter the OpenShift/Kubernetes bearer token"
-      private: no  # Set to 'yes' if you want to hide input like a password
-    - name: supabase_anon_key
-      prompt: "Enter the Supabase Anon Key"
-      private: no  # Set to 'yes' if you want to hide input like a password
-    - name: servicenow_host
-      prompt: "Enter the ServiceNow host"
-      private: no  # Set to 'yes' if you want to hide input like a password
-    - name: servicenow_username
-      prompt: "Enter the ServiceNow username"
-      private: no  # Set to 'yes' if you want to hide input like a password
-    - name: servicenow_password
-      prompt: "Enter the ServiceNow password"
-      private: no  # Set to 'yes' if you want to hide input like a password
-
   vars:
     namespace: aap
     project_name: "cell-tower"
@@ -290,7 +270,7 @@
         credential_type: "OpenShift or Kubernetes API Bearer Token"
         inputs:
           host: "{{ ocp_api_host }}"
-          bearer_token: "{{ ocp_bearer_toekn }}"
+          bearer_token: "{{ ocp_bearer_token }}"
       register: result
 
     - name: Create Job Template for fix-cell-tower
