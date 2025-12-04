@@ -54,3 +54,13 @@
           tower_id: "{{ cell_id }}"
         body_format: json
         status_code: 201
+
+    - name: Mark drift if any host had changes
+      ansible.builtin.set_stats:
+        data:
+          drift_detected: "{{ hostvars | dict2items | selectattr('value.ansible_facts', 'defined') | selectattr('value.ansible_facts.changed', 'defined') | list | length > 0 }}"
+
+    - name: Fail if drift detected
+      ansible.builtin.fail:
+        msg: "Drift detected! fix-cell-tower.yml would make changes to the infrastructure"
+      when: drift_detected | default(false) | bool
