@@ -1,6 +1,6 @@
 ---
 - name: Create ServiceNow incident for cell tower issue
-  hosts: localhost
+  hosts: all
   gather_facts: false
   vars:
     incident_urgency: "2"
